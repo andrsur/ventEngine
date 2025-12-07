@@ -179,6 +179,14 @@ int start_game() {
     blocks3.object = 'C';
     blocks3.has_symbol = true;
 
+    struct ColideObjects blocks4;
+    blocks4.stpx = 18;
+    blocks4.enpx = 20;
+    blocks4.stpy = 4;
+    blocks4.enpy = 8;
+    blocks4.object = 'C';
+    blocks4.has_symbol = true;
+
     struct Object* objects[MAX_OBJECTS];
     int objects_count = 0;
 
@@ -188,6 +196,7 @@ int start_game() {
     colide_objects[colide_objects_count++] = &blocks;
     colide_objects[colide_objects_count++] = &blocks2;
     colide_objects[colide_objects_count++] = &blocks3;
+    colide_objects[colide_objects_count++] = &blocks4;
 
     bool playing = true;
     update_map(&p, objects, objects_count, colide_objects, colide_objects_count, map_ris);
