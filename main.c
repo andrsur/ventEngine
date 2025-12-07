@@ -19,62 +19,76 @@ struct Object {
     char object;
 };
 
-struct ColideObject {
-    int px;
-    int py;
+struct ColideObjects {
+    int stpx;
+    int stpy;
+    int enpx;
+    int enpy;
     char object;
     bool has_symbol;
 };
 
-void move_posx_plus(int *px, int *py, struct ColideObject** co, int coc) {
+void move_posx_plus(int *px, int *py, struct ColideObjects** co, int coc) {
     *px += 1;
     if (*px >= MAPX_SIZE) {
         *px = MAPX_SIZE - 1;
     }
     for (int obj = 0; obj < coc; obj++) {
-        if (co[obj]->py == *py && co[obj]->px == *px) {
-            *px = co[obj]->px - 1;
+        if (*py >= co[obj]->stpy && *py <= co[obj]->enpy) {
+            if (*px >= co[obj]->stpx && *px <= co[obj]->enpx) {
+                *px -= 1;
+                break;
+            }
         }
     }
 }
 
-void move_posx_minus(int *px, int *py, struct ColideObject** co, int coc) {
+void move_posx_minus(int *px, int *py, struct ColideObjects** co, int coc) {
     *px -= 1;
     if (*px <= 0) {
         *px = 0;
     }
     for (int obj = 0; obj < coc; obj++) {
-        if (co[obj]->px == *px && co[obj]->py == *py) {
-            *px = co[obj]->px + 1;
+        if (*py >= co[obj]->stpy && *py <= co[obj]->enpy) {
+            if (*px >= co[obj]->stpx && *px <= co[obj]->enpx) {
+                *px += 1;
+                break;
+            }
         }
     }
 }
 
-void move_posy_minus(int *px, int *py, struct ColideObject** co, int coc) {
+void move_posy_minus(int *px, int *py, struct ColideObjects** co, int coc) {
     *py -= 1;
     if (*py <= 0) {
         *py = 0;
     }
     for (int obj = 0; obj < coc; obj++) {
-        if (co[obj]->py == *py && co[obj]->px == *px) {
-            *py = co[obj]->py + 1;
+        if (*py >= co[obj]->stpy && *py <= co[obj]->enpy) {
+            if (*px >= co[obj]->stpx && *px <= co[obj]->enpx) {
+                *py += 1;
+                break;
+            }
         }
     }
 }
 
-void move_posy_plus(int *px, int *py, struct ColideObject** co, int coc) {
+void move_posy_plus(int *px, int *py, struct ColideObjects** co, int coc) {
     *py += 1;
     if (*py >= MAPY_SIZE) {
         *py = MAPY_SIZE - 1;
     }
     for (int obj = 0; obj < coc; obj++) {
-        if (co[obj]->py == *py && co[obj]->px == *px) {
-            *py = co[obj]->py - 1;
+        if (*py >= co[obj]->stpy && *py <= co[obj]->enpy) {
+            if (*px >= co[obj]->stpx && *px <= co[obj]->enpx) {
+                *py -= 1;
+                break;
+            }
         }
     }
 }
 
-void update_map(struct Player *p, struct Object** objects, int objects_count, struct ColideObject** cob, int cobc, char map) { 
+void update_map(struct Player *p, struct Object** objects, int objects_count, struct ColideObjects** cob, int cobc, char map) { 
     clear();
     printw(" ");
     for (int border_up = 0; border_up < MAPX_SIZE; border_up++) {
@@ -99,9 +113,11 @@ void update_map(struct Player *p, struct Object** objects, int objects_count, st
                 }
             }
             for (int c_object = 0; c_object < cobc; c_object++) {
-                if (row == cob[c_object]->py && collumn == cob[c_object]->px) {
-                    if (cob[c_object]->has_symbol) {
-                        symbol = cob[c_object]->object;
+                if (row >= cob[c_object]->stpy && row <= cob[c_object]->enpy) {
+                    if (collumn >= cob[c_object]->stpx && collumn <= cob[c_object]->enpx) {
+                        if (cob[c_object]->has_symbol) {
+                            symbol = cob[c_object]->object;
+                        }
                     }
                 }
             }
@@ -122,34 +138,10 @@ void update_map(struct Player *p, struct Object** objects, int objects_count, st
     refresh();
 }
 
-void to_password_interact(struct Object **objects) {
-    int sfw = 0;
-    if (objects[sfw]->object == '1') {
-        objects[sfw]->object = '0';
-    }
-    else {
-        objects[sfw]->object = '1';
-    }
+void object_interact(struct Player *p, struct Object **objects) {
 }
 
-void to_password1_interact(struct Object **objects) {
-    int sfw = 1;
-    if (objects[sfw]->object == '1') {
-        objects[sfw]->object = '0';
-    }
-    else {
-        objects[sfw]->object = '1';
-    }
-}
 
-void object_interact(struct Player *p, struct Object **objects) { 
-    if (p->px == objects[0]->px && p->py == objects[0]->py) {
-        to_password_interact(objects);
-    }
-    if (p->px == objects[1]->px && p->py == objects[1]->py) {
-        to_password1_interact(objects);
-    }
-}
 
 int start_game() {
     initscr();
@@ -165,32 +157,21 @@ int start_game() {
     p.player = '#';
     char map_ris = ' ';
 
-    struct Object topassword;
-    topassword.px = 12;
-    topassword.py = 5;
-    topassword.object = '0';
-
-    struct Object topassword1;
-    topassword1.px = 11;
-    topassword1.py = 5;
-    topassword1.object = '0';
-
-    struct ColideObject block;
-    block.px = 11;
-    block.py = 3;
-    block.object = 'C';
-    block.has_symbol = true;
+    struct ColideObjects blocks;
+    blocks.stpx = 0;
+    blocks.enpx = 15;
+    blocks.stpy = 3;
+    blocks.enpy = 3;
+    blocks.object = 'C';
+    blocks.has_symbol = true;
 
     struct Object* objects[MAX_OBJECTS];
     int objects_count = 0;
 
-    struct ColideObject* colide_objects[MAX_COLIDE_OBJECTS];
+    struct ColideObjects* colide_objects[MAX_COLIDE_OBJECTS];
     int colide_objects_count = 0;
 
-    objects[objects_count++] = &topassword; 
-    objects[objects_count++] = &topassword1;
-
-    colide_objects[colide_objects_count++] = &block;
+    colide_objects[colide_objects_count++] = &blocks;
 
     bool playing = true;
     update_map(&p, objects, objects_count, colide_objects, colide_objects_count, map_ris);
